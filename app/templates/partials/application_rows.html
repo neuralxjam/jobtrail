@@ -1,0 +1,9 @@
+{% for app in applications %}
+    {% include "partials/application_row.html" %}
+{% else %}
+    <tr>
+        <td colspan="6" class="px-4 py-12 text-center text-slate-500">
+            No applications{% if active_status %} with status <strong>{{ active_status }}</strong>{% endif %}.
+        </td>
+    </tr>
+{% endfor %}

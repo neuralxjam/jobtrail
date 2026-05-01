@@ -18,6 +18,25 @@
     </button>
 </div>
 
+<!-- Status filter bar -->
+<div class="flex gap-2 mb-5 flex-wrap">
+    {% set filters = [('all', 'All'), ('applied', 'Applied'), ('interviewing', 'Interviewing'),
+                      ('offered', 'Offered'), ('rejected', 'Rejected'), ('ghosted', 'Ghosted')] %}
+    {% for value, label in filters %}
+    <button
+        hx-get="/filter?status={{ value }}"
+        hx-target="#applications-tbody"
+        hx-swap="innerHTML"
+        onclick="document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('bg-indigo-600','text-white'));
+                 this.classList.add('bg-indigo-600','text-white');"
+        class="filter-btn text-xs px-3 py-1.5 rounded-full border border-slate-700
+               hover:border-indigo-500 text-slate-300 transition
+               {% if value == 'all' %}bg-indigo-600 text-white{% endif %}">
+        {{ label }}
+    </button>
+    {% endfor %}
+</div>
+
 <!-- Slide-down form container -->
 <div id="form-container" class="mb-6"></div>
 

@@ -37,6 +37,23 @@ async def cancel_form():
     return HTMLResponse("")
 
 
+@router.get("/filter", response_class=HTMLResponse)
+async def filter_applications(
+    request: Request,
+    status: Optional[str] = None,
+    session: Session = Depends(get_session),
+):
+    query = select(Application).order_by(Application.date_applied.desc())
+    if status and status != "all":
+        query = query.where(Application.status == status)
+    applications = session.exec(query).all()
+    return templates.TemplateResponse(
+        request=request,
+        name="partials/application_rows.html",
+        context={"applications": applications, "active_status": status},
+    )
+
+
 @router.post("/applications", response_class=HTMLResponse)
 async def create_application(
     request: Request,
