@@ -8,6 +8,7 @@ from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from sqlmodel import Session, select
 
+from app.auth import current_user
 from app.database import get_session
 from app.models import Application, ApplicationStatus
 
@@ -15,25 +16,49 @@ router = APIRouter()
 templates = Jinja2Templates(directory=Path(__file__).parent.parent / "templates")
 
 
+def _ctx(user, **kwargs):
+    """Merge current_user_email into every template context."""
+    return {"current_user_email": user.email, **kwargs}
+
+
+def _get_own(app_id: int, user, session: Session) -> Application:
+    """Return the application if it belongs to the user, else 404."""
+    application = session.get(Application, app_id)
+    if not application or application.user_id != user.id:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404)
+    return application
+
+
 @router.get("/", response_class=HTMLResponse)
-async def list_applications(request: Request, session: Session = Depends(get_session)):
+async def list_applications(
+    request: Request,
+    session: Session = Depends(get_session),
+    user=Depends(current_user),
+):
     applications = session.exec(
-        select(Application).order_by(Application.date_applied.desc())
+        select(Application)
+        .where(Application.user_id == user.id)
+        .order_by(Application.date_applied.desc())
     ).all()
     return templates.TemplateResponse(
-        request=request, name="index.html", context={"applications": applications}
+        request=request,
+        name="index.html",
+        context=_ctx(user, applications=applications),
     )
 
 
 @router.get("/applications/new", response_class=HTMLResponse)
-async def new_application_form(request: Request):
+async def new_application_form(request: Request, user=Depends(current_user)):
     return templates.TemplateResponse(
-        request=request, name="partials/application_form.html", context={"app": None}
+        request=request,
+        name="partials/application_form.html",
+        context={"app": None},
     )
 
 
 @router.get("/applications/cancel", response_class=HTMLResponse)
-async def cancel_form():
+async def cancel_form(user=Depends(current_user)):
     return HTMLResponse("")
 
 
@@ -42,8 +67,13 @@ async def filter_applications(
     request: Request,
     status: Optional[str] = None,
     session: Session = Depends(get_session),
+    user=Depends(current_user),
 ):
-    query = select(Application).order_by(Application.date_applied.desc())
+    query = (
+        select(Application)
+        .where(Application.user_id == user.id)
+        .order_by(Application.date_applied.desc())
+    )
     if status and status != "all":
         query = query.where(Application.status == status)
     applications = session.exec(query).all()
@@ -64,8 +94,10 @@ async def create_application(
     job_url: Optional[str] = Form(None),
     notes: Optional[str] = Form(None),
     session: Session = Depends(get_session),
+    user=Depends(current_user),
 ):
     application = Application(
+        user_id=user.id,
         company=company,
         role=role,
         status=status,
@@ -85,9 +117,12 @@ async def create_application(
 
 @router.get("/applications/{app_id}/edit", response_class=HTMLResponse)
 async def edit_application_form(
-    request: Request, app_id: int, session: Session = Depends(get_session)
+    request: Request,
+    app_id: int,
+    session: Session = Depends(get_session),
+    user=Depends(current_user),
 ):
-    application = session.get(Application, app_id)
+    application = _get_own(app_id, user, session)
     return templates.TemplateResponse(
         request=request,
         name="partials/application_edit_row.html",
@@ -97,9 +132,12 @@ async def edit_application_form(
 
 @router.get("/applications/{app_id}/row", response_class=HTMLResponse)
 async def get_application_row(
-    request: Request, app_id: int, session: Session = Depends(get_session)
+    request: Request,
+    app_id: int,
+    session: Session = Depends(get_session),
+    user=Depends(current_user),
 ):
-    application = session.get(Application, app_id)
+    application = _get_own(app_id, user, session)
     return templates.TemplateResponse(
         request=request,
         name="partials/application_row.html",
@@ -118,8 +156,9 @@ async def update_application(
     job_url: Optional[str] = Form(None),
     notes: Optional[str] = Form(None),
     session: Session = Depends(get_session),
+    user=Depends(current_user),
 ):
-    application = session.get(Application, app_id)
+    application = _get_own(app_id, user, session)
     application.company = company
     application.role = role
     application.status = status
@@ -137,8 +176,12 @@ async def update_application(
 
 
 @router.delete("/applications/{app_id}", response_class=HTMLResponse)
-async def delete_application(app_id: int, session: Session = Depends(get_session)):
-    application = session.get(Application, app_id)
+async def delete_application(
+    app_id: int,
+    session: Session = Depends(get_session),
+    user=Depends(current_user),
+):
+    application = _get_own(app_id, user, session)
     session.delete(application)
     session.commit()
     return HTMLResponse("")
