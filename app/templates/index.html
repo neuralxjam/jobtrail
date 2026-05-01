@@ -1,27 +1,51 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JobTrail</title>
-    <style>
-        body {
-            font-family: system-ui, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            margin: 0;
-            background: #0f172a;
-            color: #f8fafc;
-        }
-        h1 { font-size: 2.5rem; margin-bottom: 0.5rem; }
-        p  { color: #94a3b8; font-size: 1.1rem; }
-    </style>
-</head>
-<body>
-    <h1>JobTrail 🚀</h1>
-    <p>Your job application tracker — coming soon.</p>
-</body>
-</html>
+{% extends "base.html" %}
+{% block title %}JobTrail — Applications{% endblock %}
+
+{% block content %}
+
+<!-- Header row -->
+<div class="flex items-center justify-between mb-6">
+    <div>
+        <h1 class="text-2xl font-bold">Applications</h1>
+        <p class="text-slate-400 text-sm mt-1">{{ applications | length }} total</p>
+    </div>
+    <button
+        hx-get="/applications/new"
+        hx-target="#form-container"
+        hx-swap="innerHTML"
+        class="bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium px-4 py-2 rounded-lg transition">
+        + Add Application
+    </button>
+</div>
+
+<!-- Slide-down form container -->
+<div id="form-container" class="mb-6"></div>
+
+<!-- Applications table -->
+<div class="bg-slate-900 rounded-xl border border-slate-800 overflow-hidden">
+    <table class="w-full text-sm">
+        <thead>
+            <tr class="border-b border-slate-800 text-slate-400 text-left">
+                <th class="px-4 py-3 font-medium">Company</th>
+                <th class="px-4 py-3 font-medium">Role</th>
+                <th class="px-4 py-3 font-medium">Status</th>
+                <th class="px-4 py-3 font-medium">Applied</th>
+                <th class="px-4 py-3 font-medium">Link</th>
+                <th class="px-4 py-3 font-medium"></th>
+            </tr>
+        </thead>
+        <tbody id="applications-tbody">
+            {% for app in applications %}
+                {% include "partials/application_row.html" %}
+            {% else %}
+                <tr id="empty-row">
+                    <td colspan="6" class="px-4 py-12 text-center text-slate-500">
+                        No applications yet. Click <strong>+ Add Application</strong> to get started.
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% endblock %}

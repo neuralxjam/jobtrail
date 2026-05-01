@@ -1,0 +1,92 @@
+{% set is_edit = app is not none %}
+
+<div class="bg-slate-900 border border-slate-700 rounded-xl p-6">
+    <div class="flex items-center justify-between mb-5">
+        <h2 class="font-semibold text-base">
+            {{ "Edit Application" if is_edit else "New Application" }}
+        </h2>
+        <button
+            hx-get="/applications/cancel"
+            hx-target="#form-container"
+            hx-swap="innerHTML"
+            class="text-slate-500 hover:text-white text-sm transition">
+            ✕ Cancel
+        </button>
+    </div>
+
+    <form
+        {% if is_edit %}
+            hx-put="/applications/{{ app.id }}"
+            hx-target="#app-row-{{ app.id }}"
+            hx-swap="outerHTML"
+        {% else %}
+            hx-post="/applications"
+            hx-target="#applications-tbody"
+            hx-swap="afterbegin"
+        {% endif %}
+        hx-on::after-request="if(event.detail.successful) document.getElementById('form-container').innerHTML = ''"
+        class="grid grid-cols-2 gap-4">
+
+        <div class="col-span-1">
+            <label class="block text-xs text-slate-400 mb-1">Company *</label>
+            <input name="company" value="{{ app.company if is_edit else '' }}" required
+                   class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm
+                          focus:outline-none focus:border-indigo-500 transition"
+                   placeholder="e.g. Google">
+        </div>
+
+        <div class="col-span-1">
+            <label class="block text-xs text-slate-400 mb-1">Role *</label>
+            <input name="role" value="{{ app.role if is_edit else '' }}" required
+                   class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm
+                          focus:outline-none focus:border-indigo-500 transition"
+                   placeholder="e.g. Software Engineer">
+        </div>
+
+        <div class="col-span-1">
+            <label class="block text-xs text-slate-400 mb-1">Status</label>
+            <select name="status"
+                    class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm
+                           focus:outline-none focus:border-indigo-500 transition">
+                {% for s in ['applied', 'interviewing', 'offered', 'rejected', 'ghosted'] %}
+                    <option value="{{ s }}"
+                        {{ 'selected' if is_edit and app.status.value == s else '' }}>
+                        {{ s }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="col-span-1">
+            <label class="block text-xs text-slate-400 mb-1">Date Applied *</label>
+            <input type="date" name="date_applied"
+                   value="{{ app.date_applied if is_edit else '' }}" required
+                   class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm
+                          focus:outline-none focus:border-indigo-500 transition">
+        </div>
+
+        <div class="col-span-2">
+            <label class="block text-xs text-slate-400 mb-1">Job URL</label>
+            <input name="job_url" value="{{ app.job_url if is_edit and app.job_url else '' }}"
+                   class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm
+                          focus:outline-none focus:border-indigo-500 transition"
+                   placeholder="https://...">
+        </div>
+
+        <div class="col-span-2">
+            <label class="block text-xs text-slate-400 mb-1">Notes</label>
+            <textarea name="notes" rows="2"
+                      class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm
+                             focus:outline-none focus:border-indigo-500 transition resize-none"
+                      placeholder="Referral, recruiter name, interview rounds...">{{ app.notes if is_edit and app.notes else '' }}</textarea>
+        </div>
+
+        <div class="col-span-2 flex justify-end">
+            <button type="submit"
+                    class="bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium
+                           px-5 py-2 rounded-lg transition">
+                {{ "Save Changes" if is_edit else "Add Application" }}
+            </button>
+        </div>
+    </form>
+</div>

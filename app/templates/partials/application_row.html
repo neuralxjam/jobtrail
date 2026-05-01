@@ -1,0 +1,45 @@
+{% set status_styles = {
+    'applied':      'bg-blue-500/20 text-blue-400',
+    'interviewing': 'bg-amber-500/20 text-amber-400',
+    'offered':      'bg-green-500/20 text-green-400',
+    'rejected':     'bg-red-500/20 text-red-400',
+    'ghosted':      'bg-slate-500/20 text-slate-400'
+} %}
+
+<tr id="app-row-{{ app.id }}" class="border-b border-slate-800/60 hover:bg-slate-800/40 transition">
+    <td class="px-4 py-3 font-medium">{{ app.company }}</td>
+    <td class="px-4 py-3 text-slate-300">{{ app.role }}</td>
+    <td class="px-4 py-3">
+        <span class="px-2 py-1 rounded-full text-xs font-medium {{ status_styles[app.status] }}">
+            {{ app.status }}
+        </span>
+    </td>
+    <td class="px-4 py-3 text-slate-400">{{ app.date_applied }}</td>
+    <td class="px-4 py-3">
+        {% if app.job_url %}
+            <a href="{{ app.job_url }}" target="_blank"
+               class="text-indigo-400 hover:text-indigo-300 text-xs">View ↗</a>
+        {% else %}
+            <span class="text-slate-600">—</span>
+        {% endif %}
+    </td>
+    <td class="px-4 py-3">
+        <div class="flex items-center gap-3 justify-end">
+            <button
+                hx-get="/applications/{{ app.id }}/edit"
+                hx-target="#app-row-{{ app.id }}"
+                hx-swap="outerHTML"
+                class="text-slate-400 hover:text-white text-xs transition">
+                Edit
+            </button>
+            <button
+                hx-delete="/applications/{{ app.id }}"
+                hx-target="#app-row-{{ app.id }}"
+                hx-swap="outerHTML"
+                hx-confirm="Delete this application?"
+                class="text-red-500 hover:text-red-400 text-xs transition">
+                Delete
+            </button>
+        </div>
+    </td>
+</tr>

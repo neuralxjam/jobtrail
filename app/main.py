@@ -1,20 +1,17 @@
-from pathlib import Path
+from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, Request
-from fastapi.responses import HTMLResponse
-from fastapi.templating import Jinja2Templates
+from fastapi import FastAPI
 
-BASE_DIR = Path(__file__).parent
-
-app = FastAPI(title="JobTrail")
-templates = Jinja2Templates(directory=BASE_DIR / "templates")
+from app.database import create_db_and_tables
+from app.models import Application  # noqa: F401 — registers table with SQLModel metadata
+from app.routes.applications import router
 
 
-@app.get("/", response_class=HTMLResponse)
-async def root(request: Request):
-    return templates.TemplateResponse(request=request, name="index.html")
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    create_db_and_tables()
+    yield
 
 
-@app.get("/health")
-async def health():
-    return {"status": "ok"}
+app = FastAPI(title="JobTrail", lifespan=lifespan)
+app.include_router(router)
