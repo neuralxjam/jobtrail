@@ -25,3 +25,8 @@ jobs:
 
       - name: Run tests
         run: pytest --tb=short -q
+        env:
+          # database.py reads DATABASE_URL at import time. Tests use an
+          # in-memory SQLite override (conftest.py), so this URL is never
+          # actually connected to — it just has to exist so the import succeeds.
+          DATABASE_URL: sqlite:///./test.db
