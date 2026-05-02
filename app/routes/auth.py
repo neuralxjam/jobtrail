@@ -5,12 +5,15 @@ from fastapi.requests import Request
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
+import os
+
 from app.auth import supabase
 
 router = APIRouter()
 templates = Jinja2Templates(directory=Path(__file__).parent.parent / "templates")
 
-REDIRECT_URL = "http://localhost:8000/auth/callback"
+_base = os.getenv("BASE_URL", "http://localhost:8000")
+REDIRECT_URL = f"{_base}/auth/callback"
 COOKIE_OPTS = {"key": "sb-token", "httponly": True, "samesite": "lax", "secure": False, "max_age": 3600}
 
 
