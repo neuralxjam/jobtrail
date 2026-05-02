@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard — JobTrail{% endblock %}
+
+{% block content %}
+<div class="space-y-8">
+
+    <!-- Header -->
+    <div>
+        <h1 class="text-2xl font-semibold">Dashboard</h1>
+        <p class="text-slate-400 text-sm mt-1">{{ total }} application{{ 's' if total != 1 }} tracked</p>
+    </div>
+
+    <!-- Status cards -->
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+        {% for card in cards %}
+        <div class="rounded-xl border {{ card.border }} {{ card.bg }} p-4 flex flex-col gap-1">
+            <span class="text-xs font-medium text-slate-400 uppercase tracking-wide">{{ card.label }}</span>
+            <span class="text-3xl font-bold {{ card.text }}">{{ card.count }}</span>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Weekly chart -->
+    <div class="rounded-xl border border-slate-800 bg-slate-900 p-6">
+        <h2 class="text-sm font-medium text-slate-400 uppercase tracking-wide mb-4">Applications per week</h2>
+        <canvas id="weeklyChart" height="80"></canvas>
+    </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+    const ctx = document.getElementById('weeklyChart');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: {{ chart_labels | safe }},
+            datasets: [{
+                label: 'Applications',
+                data: {{ chart_data | safe }},
+                backgroundColor: 'rgba(99,102,241,0.6)',
+                borderColor: 'rgba(99,102,241,1)',
+                borderWidth: 1,
+                borderRadius: 4,
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: false },
+            },
+            scales: {
+                x: {
+                    ticks: { color: '#94a3b8' },
+                    grid:  { color: '#1e293b' },
+                },
+                y: {
+                    beginAtZero: true,
+                    ticks: { color: '#94a3b8', stepSize: 1 },
+                    grid:  { color: '#1e293b' },
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
