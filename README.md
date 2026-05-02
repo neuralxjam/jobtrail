@@ -10,6 +10,7 @@
 ![CI](https://github.com/neuralxjam/jobtrail/actions/workflows/ci.yml/badge.svg)
 
 **Live demo**: [jobtrail-0gza.onrender.com](https://jobtrail-0gza.onrender.com) *(free tier — first load may take ~30s to wake)*
+**Portfolio write-up**: [neuralxjam.github.io/projects/jobtrail](https://neuralxjam.github.io/projects/jobtrail)
 
 > Sign in with your own email — magic link, no password needed.
 
